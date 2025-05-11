@@ -16,9 +16,11 @@ func main() {
 	routers.RegisterRouters(r)
 
 	config.ConnectToMongoDB()
-	config.ConnectToRabbitMQ()
 
-	// r.Run("asset:8080")
+	// TODO hack - Run is called before RabbitMQ because of forever
+	// Try with defer
+	defer config.ConnectToRabbitMQ()
+	r.Run("asset:8080")
 
 	// TODO read from .env
 }

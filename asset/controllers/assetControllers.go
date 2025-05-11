@@ -23,6 +23,7 @@ func GetAsset(c *gin.Context) {
 	c.JSON(http.StatusOK, asset)
 }
 
+// TODO -> Make `enabled` editable, replace with `isActive`
 func GetAssets(c *gin.Context) {
 	var assets []models.Asset
 

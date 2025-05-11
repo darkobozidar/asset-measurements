@@ -46,10 +46,12 @@ func ConnectToRabbitMQ() {
 	var forever chan struct{}
 		go func() {
 			for m := range msgs {
-				log.Printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA %v", m.Body)
+				// log.Printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA %v", m.Body)
 				var assetMeasurement Measurement
 				err := json.Unmarshal(m.Body, &assetMeasurement)
 				failOnError(err, "Failed to decode JSON")
+
+				// TODO check if assetID exists
 
 				log.Printf("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB %+v", assetMeasurement)
 
@@ -59,7 +61,7 @@ func ConnectToRabbitMQ() {
 			}
 		}()
 
-	  log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	//   log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 }
 
