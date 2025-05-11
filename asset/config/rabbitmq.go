@@ -2,6 +2,8 @@ package config
 
 import (
 	"log"
+	"time"
+	"encoding/json"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -10,6 +12,13 @@ func failOnError(err error, msg string) {
 	if err != nil {
 		log.Panicf("%s: %s", msg, err)
 	}
+}
+
+type AssetMeasurement struct {
+    AssetID   uint      `json:"asset_id"`
+    Timestamp time.Time `json:"timestamp"`
+    Power     float64   `json:"power"`
+    SOE       float64   `json:"soe"`
 }
 
 func ConnectToRabbitMQ() {
@@ -44,11 +53,19 @@ func ConnectToRabbitMQ() {
 
 	var forever chan struct{}
 		go func() {
-			for d := range msgs {
-				log.Printf("Received a message: %s", d.Body)
+			for m := range msgs {
+				var assetMeasurement AssetMeasurement
+				err := json.Unmarshal(m.Body, &assetMeasurement)
+				failOnError(err, "Failed to decode JSON")
+
+				persistAssetMeasurement(assetMeasurement)
 			}
 		}()
 
 	  log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
+}
+
+func persistAssetMeasurement(assetMeasurement AssetMeasurement) {
+	log.Printf("Received a message: %v", assetMeasurement)
 }

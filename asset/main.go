@@ -15,7 +15,8 @@ func main() {
 	r := gin.Default()
 	routers.RegisterRouters(r)
 
-	config.ConnectToRabbitMQ()
+	config.ConnectToMongoDB()
+	// config.ConnectToRabbitMQ()
 
 	// TODO read from .env
 	r.Run("asset:8080")

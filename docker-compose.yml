@@ -9,8 +9,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      # mongodb:
-      #   condition: service_healthy
+      mongodb:
+        condition: service_healthy
 
   simulator:
     build:
@@ -22,8 +22,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      # mongodb:
-      #   condition: service_healthy
 
   postgres:
     image: postgres:17.5
@@ -55,18 +53,22 @@ services:
       timeout: 5s
       retries: 10
 
-  # mongodb:
-  #   image: mongo:6
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - mongo-data:/data/db
-  #   healthcheck:
-  #     test: echo 'db.runCommand("ping").ok' | mongosh mongodb://localhost:27017/test --quiet | grep 1
-  #     interval: 2s
-  #     timeout: 5s
-  #     retries: 5
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: asset_measurements
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres-data:
-  # mongo-data:
+  mongo-data:
