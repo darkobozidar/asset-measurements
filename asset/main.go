@@ -16,8 +16,9 @@ func main() {
 	routers.RegisterRouters(r)
 
 	config.ConnectToMongoDB()
-	// config.ConnectToRabbitMQ()
+	config.ConnectToRabbitMQ()
+
+	// r.Run("asset:8080")
 
 	// TODO read from .env
-	r.Run("asset:8080")
 }

@@ -11,11 +11,15 @@ import (
 )
 
 type Measurement struct {
-    AssetID   string    `bson:"asset_id"`  // metaField
+	// For some reason the AssetId is not sent correctly through RabbitMQ if it
+    // is named `asset_id`, but it works with `asset-id`?
+    AssetID   uint      `bson:"asset_id" json:"asset-id"`  // metaField
     Timestamp time.Time `bson:"timestamp"` // timeField
     Power     float64   `bson:"power"`
     SOE       float64   `bson:"soe"`
 }
+
+var CLIENT *mongo.Client
 
 // TODO replace tabs with spaces.
 func ConnectToMongoDB() {
@@ -27,11 +31,11 @@ func ConnectToMongoDB() {
         log.Fatalf("Failed to connect to MongoDB: %v", err)
     }
 
-    defer func() {
-        if err = client.Disconnect(context.TODO()); err != nil {
-            log.Fatalf("Failed to disconnect MongoDB client: %v", err)
-        }
-    }()
+    // defer func() {
+    //     if err = client.Disconnect(context.TODO()); err != nil {
+    //         log.Fatalf("Failed to disconnect MongoDB client: %v", err)
+    //     }
+    // }()
 
     dbName := "asset_measurements"
     collName := "measurements"
@@ -41,19 +45,7 @@ func ConnectToMongoDB() {
         log.Fatalf("Error creating time-series collection: %v", err)
     }
 
-    // Insert a sample measurement
-    m := Measurement{
-        AssetID:   "asset-123",
-        Timestamp: time.Now(),
-        Power:     456.7,
-        SOE:       80.5,
-    }
-
-    if err := insertMeasurement(client, dbName, collName, m); err != nil {
-        log.Fatalf("Error inserting measurement: %v", err)
-    }
-
-    fmt.Println("Measurement inserted successfully!")
+	CLIENT = client
 }
 
 // Create the time-series collection
@@ -81,8 +73,9 @@ func createTimeSeriesCollection(client *mongo.Client, dbName, collName string) e
 }
 
 // Insert a single measurement
-func insertMeasurement(client *mongo.Client, dbName, collName string, m Measurement) error {
-    collection := client.Database(dbName).Collection(collName)
-    _, err := collection.InsertOne(context.TODO(), m)
-    return err
+func InsertMeasurement(measurement Measurement) error {
+	// TODO only once / at least once -> Check if the record already exists.
+    collection := CLIENT.Database("asset_measurements").Collection("measurements")
+    _, err := collection.InsertOne(context.TODO(), measurement)
+	return err
 }
