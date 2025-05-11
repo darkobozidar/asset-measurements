@@ -17,10 +17,8 @@ func main() {
 
 	config.ConnectToMongoDB()
 
-	// TODO hack - Run is called before RabbitMQ because of forever
-	// Try with defer
-	defer config.ConnectToRabbitMQ()
+	// TODO how to clean this up?
+	go config.ConnectToRabbitMQ()
+	// TODO read from .env.
 	r.Run("asset:8080")
-
-	// TODO read from .env
 }
