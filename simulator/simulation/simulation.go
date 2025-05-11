@@ -10,12 +10,12 @@ import (
 	"simulator/models"
 )
 
-// type AssetMeasurement struct {
-//     AssetID   uint      `json:"asset_id"`
-//     Timestamp time.Time `json:"timestamp"`
-//     Power     float64   `json:"power"`
-//     SOE       float64   `json:"soe"`
-// }
+type AssetMeasurement struct {
+    AssetID   uint      `json:"asset_id"`
+    Timestamp time.Time `json:"timestamp"`
+    Power     float64   `json:"power"`
+    SOE       float64   `json:"soe"`
+}
 
 func GetAssetSimulationConfigs() {
 	var assetSimulatorConfig []models.AssetSimulationConfig
@@ -48,18 +48,18 @@ func StartSimulation() {
     for range ticker.C {
         currentPower := generateRandomPower(assetConfig, lastPower)
         currentSOE = updateSOE(currentSOE, currentPower, assetConfig.MeasurementInterval)
-		lastPower = currentPower
+	    lastPower = currentPower
 
-		log.Printf("Power: %v, SOE: %v", currentPower, currentSOE)
+        log.Printf("Power: %v, SOE: %v", currentPower, currentSOE)
 
-        // measurement := AssetMeasurement{
-        //     AssetID: assetConfig.AssetID,
-        //     Timestamp: time.Now().UTC(),
-        //     Power: power,
-        //     SOE: currentSOE,
-        // }
+        measurement := AssetMeasurement{
+            AssetID:   assetConfig.ID,
+            Timestamp: time.Now().UTC(),
+            Power:     currentPower,
+            SOE:       lastPower,
+        }
 
-        // producer.Publish(measurement) // Send to RabbitMQ
+        config.PublishToQueue(measurement)
     }
 }
 

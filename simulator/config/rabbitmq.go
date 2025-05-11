@@ -4,20 +4,23 @@ import (
 	"context"
 	"log"
 	"time"
+	"encoding/json"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+// TODO add this to utils or something similar
 func failOnError(err error, msg string) {
 	if err != nil {
 	  	log.Panicf("%s: %s", msg, err)
 	}
 }
 
-func ConnectToRabbitMQ() {
+func PublishToQueue(obj any) {
 	// TODO clean this up
-	// - read from config
-	// - split into multiple functions
+	// - Read from config.
+	// - Split into multiple functions.
+	// - Connect only once.
 	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -27,7 +30,7 @@ func ConnectToRabbitMQ() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"measurements", // name
+		"asset-measurements", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -39,16 +42,18 @@ func ConnectToRabbitMQ() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	body := "Hello World!"
+	body, err := json.Marshal(obj)
+	failOnError(err, "Failed to marshal obj")
+
 	err = ch.PublishWithContext(
 		ctx,
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
-		amqp.Publishing {
-			ContentType: "text/plain",
-			Body:        []byte(body),
+        "",     // exchange
+        q.Name, // routing key (queue name)
+        false,  // mandatory
+        false,  // immediate
+        amqp.Publishing{
+            ContentType: "application/json",
+            Body:        body,
 		},
 	)
 

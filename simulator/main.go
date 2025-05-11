@@ -13,8 +13,6 @@ func main() {
 	config.ConnectToDB()
 	models.MigrateModels()
 
-	config.ConnectToRabbitMQ()
-
 	r := gin.Default()
 	routers.RegisterRouters(r)
 

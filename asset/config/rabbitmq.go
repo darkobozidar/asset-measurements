@@ -22,7 +22,7 @@ func ConnectToRabbitMQ() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"measurements", // name
+		"asset-measurements", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -43,7 +43,6 @@ func ConnectToRabbitMQ() {
 	failOnError(err, "Failed to register a consumer")
 
 	var forever chan struct{}
-
 		go func() {
 			for d := range msgs {
 				log.Printf("Received a message: %s", d.Body)
@@ -51,5 +50,5 @@ func ConnectToRabbitMQ() {
 		}()
 
 	  log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	  <-forever
+	<-forever
 }
