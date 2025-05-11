@@ -19,5 +19,5 @@ func main() {
 	simulation.StartSimulation()
 
 	// TODO read from .env
-	r.Run("asset:8080")
+	r.Run("simulator:8080")
 }

@@ -31,26 +31,37 @@ func GetAssetSimulationConfigs() {
 
 // func startSimulation(config AssetSimulationConfig, producer MessageProducer) {
 func StartSimulation() {
-	var assetConfig models.AssetSimulationConfig
+	var assetConfigs []models.AssetSimulationConfig
 
-	query := config.DB.First(&assetConfig)
+	query := config.DB.
+        // Where("isActive = true").
+        Find(&assetConfigs)
+
 	if err := query.Error; err != nil {
 		log.Fatalf("Error: %v", err)
 		return
 	}
 
+    for _, assetConfig := range assetConfigs {
+        // go startSimulationForConfig(assetConfig)
+        log.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX %+v", assetConfig)
+        go startSimulationForConfig(assetConfig)
+    }
+}
+
+func startSimulationForConfig(assetConfig models.AssetSimulationConfig) {
     ticker := time.NewTicker(time.Duration(assetConfig.MeasurementInterval) * time.Second)
     defer ticker.Stop()
 
-	// Initial state hardcoded to 50%. TODO think of something better.
+    // Initial state hardcoded to 50%. TODO think of something better.
 
     currentSOE := 50.0
-	var lastPower float64 = assetConfig.MinPower
+    var lastPower float64 = assetConfig.MinPower
 
     for range ticker.C {
         currentPower := generateRandomPower(assetConfig, lastPower)
         currentSOE = updateSOE(currentSOE, currentPower, assetConfig.MeasurementInterval)
-	    lastPower = currentPower
+        lastPower = currentPower
 
         log.Printf("Power: %v, SOE: %v", currentPower, currentSOE)
 
@@ -90,16 +101,3 @@ func updateSOE(currentSOE, power float64, intervalSeconds int) float64 {
     newSOE := currentSOE + delta
     return math.Max(0, math.Min(100, newSOE))
 }
-
-// func (p *RabbitProducer) Publish(measurement AssetMeasurement) {
-//     body, _ := json.Marshal(measurement)
-//     p.channel.Publish(
-//         "asset_exchange",  // exchange
-//         "asset.measurement", // routing key
-//         false, false,
-//         amqp.Publishing{
-//             ContentType: "application/json",
-//             Body:        body,
-//         },
-//     )
-// }
