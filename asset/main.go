@@ -18,8 +18,14 @@ func main() {
 
 	config.ConnectToMongoDB()
 
-	// TODO how to clean this up?
-	go config.ConnectToRabbitMQ(controllers.CreateMeasurement)
+	// RabbitMQ
+	conn := config.ConnectToRabbitMQ()
+	channel := config.CreateRabbitMQChannel(conn)
+	queue := config.CreateRabbitMQQueue(channel, "asset-measurements")
+	go config.RegisterRabbitMQConsumer(channel, queue.Name, controllers.CreateMeasurement)
+	defer conn.Close()
+	defer channel.Close()
+
 	// TODO read from .env.
 	r.Run("asset:8080")
 }
