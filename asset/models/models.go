@@ -11,9 +11,8 @@ type Asset struct {
     Name        string    `gorm:"type:varchar(100);not null" json:"name"`
     Description string    `gorm:"type:text" json:"description"`
     Type        string    `gorm:"type:varchar(50);not null" json:"type"`
-    Enabled     bool      `gorm:"default:true" json:"enabled"`
-    // CreatedAt   time.Time `json:"created_at"`  // TODO
-    // UpdatedAt   time.Time `json:"updated_at"`
+    IsEnabled   bool      `json:"isEnabled"`
+    IsActive    bool      `gorm:"default:true" json:"-"`
 }
 
 type AssetMeasurement struct {

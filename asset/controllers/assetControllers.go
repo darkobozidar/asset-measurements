@@ -14,7 +14,7 @@ import (
 func GetAsset(c *gin.Context) {
 	var asset models.Asset
 
-	result := config.DB.First(&asset, "id = ? AND enabled = true", c.Param("id"))
+	result := config.DB.First(&asset, "id = ? AND is_active = true", c.Param("id"))
 	if err := result.Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -23,18 +23,17 @@ func GetAsset(c *gin.Context) {
 	c.JSON(http.StatusOK, asset)
 }
 
-// TODO -> Make `enabled` editable, replace with `isActive`
 func GetAssets(c *gin.Context) {
 	var assets []models.Asset
 
-	enabledParam, errEnabledParam := strconv.ParseBool(c.DefaultQuery("enabled", "true"))
+	enabledParam, errEnabledParam := strconv.ParseBool(c.DefaultQuery("isEnabled", "true"))
 	typeParam := c.Query("type")
 
 	if errEnabledParam != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'enabled' query param value."})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'isEnabled' query param value."})
 	}
 
-	query := config.DB.Where("enabled = ?", enabledParam)
+	query := config.DB.Where("is_enabled = ?", enabledParam)
 
 	if typeParam != "" {
 		query = query.Where("type = ?", typeParam)
@@ -56,11 +55,12 @@ func GetAssets(c *gin.Context) {
 func CreateAsset(c *gin.Context) {
 	// Why custom serializer?
 	// - `Id`` is auto generated.
-	// - `Enabled` is `true` for every newly created Asset.
+	// - `IsActive` is `true` for every newly created Asset.
 	var body struct {
-		Name        string `json:"name" binding:"required"`
-		Description string `json:"description" binding:"required"`
-		Type        string `json:"type" binding:"required"`
+		Name        string  `json:"name" binding:"required"`
+		Description string  `json:"description" binding:"required"`
+		Type        string  `json:"type" binding:"required"`
+		IsEnabled   bool    `json:"isEnabled"`
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -72,6 +72,7 @@ func CreateAsset(c *gin.Context) {
 		Name: body.Name,
 		Description: body.Description,
 		Type: body.Type,
+		IsEnabled: body.IsEnabled,
 	}
 
 	if err := config.DB.Create(&asset).Error; err != nil {
@@ -88,6 +89,7 @@ func UpdateAsset(c *gin.Context) {
 		Name        *string `json:"name" binding:"omitempty,min=1"`
 		Description *string `json:"description" binding:"omitempty,min=1"`
 		Type        *string `json:"type" binding:"omitempty,min=1"`
+		IsEnabled   *bool   `json:"isEnabled" binding:"omitempty"`
 	}
 	assetId := c.Param("id")
 
@@ -96,7 +98,6 @@ func UpdateAsset(c *gin.Context) {
 		return
 	}
 
-	// TODO check if these repeated lines can be somehow simplified.
 	if body.Name != nil {
 		asset.Name = *body.Name
 	}
@@ -106,10 +107,13 @@ func UpdateAsset(c *gin.Context) {
 	if body.Type != nil {
 		asset.Type = *body.Type
 	}
+	if body.IsEnabled != nil {
+		asset.IsEnabled = *body.IsEnabled
+	}
 
-	// Creates a single UPDATE SQL statement. TODO double check.
+	// TODO `IsEnabled` doesn't update the value if set to `false`, even if hardcoded.
 	resultUpdate := config.DB.Model(&models.Asset{}).
-		Where("id = ? AND enabled = true", assetId).
+		Where("id = ? AND is_active = true", assetId).
 		Updates(&asset)
 
 	if err := resultUpdate.Error; err != nil {
@@ -123,8 +127,8 @@ func UpdateAsset(c *gin.Context) {
 		return
     }
 
-	// TODO transaction between update and read.
-	resultRead := config.DB.First(&asset, "id = ? AND enabled = true", assetId)
+	// TODO Transaction between update and read.
+	resultRead := config.DB.First(&asset, "id = ? AND is_active = true", assetId)
     if err := resultRead.Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -136,8 +140,8 @@ func UpdateAsset(c *gin.Context) {
 func DeleteAsset(c *gin.Context) {
 	assetId := c.Param("id")
 	result := config.DB.Model(&models.Asset{}).
-		Where("id = ? AND enabled = true", assetId).
-		Update("enabled", false)
+		Where("id = ? AND is_active = true", assetId).
+		Update("is_active", false)
 
 	if err := result.Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

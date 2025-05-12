@@ -9,13 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO read from .env where possible
 func main() {
+	// PostgreSQL
 	config.ConnectToPostgresDB()
 	models.MigrateModels()
 
-	r := gin.Default()
-	routers.RegisterRouters(r)
-
+	// MongoDB
 	config.ConnectToMongoDB()
 
 	// RabbitMQ
@@ -26,6 +26,8 @@ func main() {
 	defer conn.Close()
 	defer channel.Close()
 
-	// TODO read from .env.
+	// Start server
+	r := gin.Default()
+	routers.RegisterRouters(r)
 	r.Run("asset:8080")
 }
