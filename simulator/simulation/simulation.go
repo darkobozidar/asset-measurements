@@ -4,44 +4,21 @@ import (
 	"math"
     "math/rand"
     "time"
-	"log"
 
-	"simulator/config"
 	"simulator/models"
 )
 
-type AssetMeasurement struct {
-    // For some reason the AssetId is not sent correctly through RabbitMQ if it
-    // is named `asset_id`, but it works with `asset-id`?
+type assetMeasurement struct {
     AssetID   uint      `json:"asset_id"`
     Timestamp time.Time `json:"timestamp"`
     Power     float64   `json:"power"`
     SOE       float64   `json:"soe"`
 }
 
-func GetAssetSimulationConfigs() {
-	var assetSimulatorConfig []models.AssetSimulationConfig
-
-	query := config.DB.First(&assetSimulatorConfig)
-	if err := query.Error; err != nil {
-		log.Fatalf("Error: %v", err)
-		return
-	}
-}
-
 func StartSimulation(simulationHandler func(obj any)) {
-	var assetConfigs []models.AssetSimulationConfig
+	assetSimulationConfigs := models.GetActiveAssetSimulationConfigs()
 
-	query := config.DB.
-        // TODO where("isActive = true").
-        Find(&assetConfigs)
-
-	if err := query.Error; err != nil {
-		log.Fatalf("Error: %v", err)
-		return
-	}
-
-    for _, assetConfig := range assetConfigs {
+    for _, assetConfig := range assetSimulationConfigs {
         go startSimulationForConfig(assetConfig, simulationHandler)
     }
 }
@@ -59,7 +36,7 @@ func startSimulationForConfig(assetConfig models.AssetSimulationConfig, simulati
         currentSOE = updateSOE(currentSOE, currentPower, assetConfig.MeasurementInterval)
         lastPower = currentPower
 
-        measurement := AssetMeasurement{
+        measurement := assetMeasurement{
             AssetID:   assetConfig.ID,
             Timestamp: time.Now().UTC(),
             Power:     currentPower,
