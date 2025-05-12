@@ -1,7 +1,7 @@
 package config
 
 import (
-	"context"
+    "context"
     "log"
 
     "go.mongodb.org/mongo-driver/mongo"
@@ -10,7 +10,6 @@ import (
 
 var MongoC *mongo.Client
 
-// TODO replace tabs with spaces.
 func ConnectToMongoDB() {
     uri := "mongodb://root:example@mongodb:27017"
 
@@ -20,7 +19,7 @@ func ConnectToMongoDB() {
         log.Fatalf("Failed to connect to MongoDB: %v", err)
     }
 
-	MongoC = client
+    MongoC = client
 }
 
 func CreateTimeSeriesCollection(dbName, collName, timeField, metaField, granularity string) {

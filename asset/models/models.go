@@ -1,7 +1,7 @@
 package models
 
 import (
-	"asset/config"
+    "asset/config"
 
     "time"
 )
@@ -23,5 +23,5 @@ type AssetMeasurement struct {
 }
 
 func MigrateModels() {
-	config.DB.AutoMigrate(&Asset{})
+    config.DB.AutoMigrate(&Asset{})
 }

@@ -1,11 +1,11 @@
 package utils
 
 import (
-	"log"
+    "log"
 )
 
 func FailOnError(err error, msg string) {
-	if err != nil {
-		log.Panicf("%s: %s", msg, err)
-	}
+    if err != nil {
+        log.Panicf("%s: %s", msg, err)
+    }
 }

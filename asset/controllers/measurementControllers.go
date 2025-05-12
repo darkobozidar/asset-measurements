@@ -1,20 +1,20 @@
 package controllers
 
 import (
-	"asset/config"
+    "asset/config"
     "asset/utils"
     "asset/models"
 
     "encoding/json"
-	"net/http"
-	"strconv"
-	"context"
-	"time"
+    "net/http"
+    "strconv"
+    "context"
+    "time"
 
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
+    "github.com/gin-gonic/gin"
+    "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+    "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // TODO check to create indexes.
