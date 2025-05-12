@@ -6,6 +6,8 @@ import (
 	"asset/controllers"
 	"asset/routers"
 
+	"context"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +19,10 @@ func main() {
 
 	// MongoDB
 	config.ConnectToMongoDB()
+	config.CreateTimeSeriesCollection(
+		"asset_measurements", "measurements", "timestamp", "asset_id", "seconds",
+	)
+	defer config.MongoC.Disconnect(context.TODO())
 
 	// RabbitMQ
 	conn := config.ConnectToRabbitMQ()
