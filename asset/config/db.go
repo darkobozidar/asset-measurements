@@ -10,7 +10,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectToDB() {
+func ConnectToPostgresDB() {
 	var err error
 
 	// TODO collect these from .env.

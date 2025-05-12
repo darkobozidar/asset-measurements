@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	config.ConnectToDB()
+	config.ConnectToPostgresDB()
 	models.MigrateModels()
 
 	r := gin.Default()
