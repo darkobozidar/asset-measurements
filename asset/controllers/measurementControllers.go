@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"asset/config"
+    "asset/utils"
 
+    "encoding/json"
 	"net/http"
 	"strconv"
 	"context"
@@ -31,7 +33,7 @@ func GetLatestMeasurement(c *gin.Context) {
         return
     }
 
-    collection := config.CLIENT.Database("asset_measurements").Collection("measurements")
+    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
 
     filter := bson.M{"asset_id": assetID}
     opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
@@ -73,7 +75,7 @@ func GetMeasurementsInRange(c *gin.Context) {
         sortOrder = -1
     }
 
-    collection := config.CLIENT.Database("asset_measurements").Collection("measurements")
+    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
     filter := bson.M{
         "asset_id": assetID,
         "timestamp": bson.M{
@@ -137,7 +139,7 @@ func GetAverageMeasurements(c *gin.Context) {
         sortOrder = -1
     }
 
-    collection := config.CLIENT.Database("asset_measurements").Collection("measurements")
+    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
 
     var timeGroup bson.D
     if interval == "15min" {
@@ -184,4 +186,15 @@ func GetAverageMeasurements(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, results)
+}
+
+func CreateMeasurement(queueMessage []byte) {
+    var assetMeasurement config.Measurement
+    err := json.Unmarshal(queueMessage, &assetMeasurement)
+    utils.FailOnError(err, "Failed to decode JSON")
+
+    // TODO check if assetID exists (Exactly once!)
+    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
+    _, err = collection.InsertOne(context.TODO(), assetMeasurement)
+    utils.FailOnError(err, "Error on inserting measurement");
 }

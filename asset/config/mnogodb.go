@@ -19,7 +19,7 @@ type Measurement struct {
     SOE       float64   `bson:"soe"`
 }
 
-var CLIENT *mongo.Client
+var MongoC *mongo.Client
 
 // TODO replace tabs with spaces.
 func ConnectToMongoDB() {
@@ -45,7 +45,7 @@ func ConnectToMongoDB() {
         log.Fatalf("Error creating time-series collection: %v", err)
     }
 
-	CLIENT = client
+	MongoC = client
 }
 
 // Create the time-series collection
@@ -70,12 +70,4 @@ func createTimeSeriesCollection(client *mongo.Client, dbName, collName string) e
     opts := options.CreateCollection().SetTimeSeriesOptions(tsOptions)
 
     return db.CreateCollection(context.TODO(), collName, opts)
-}
-
-// Insert a single measurement
-func InsertMeasurement(measurement Measurement) error {
-	// TODO only once / at least once -> Check if the record already exists.
-    collection := CLIENT.Database("asset_measurements").Collection("measurements")
-    _, err := collection.InsertOne(context.TODO(), measurement)
-	return err
 }

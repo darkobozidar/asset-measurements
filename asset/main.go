@@ -3,6 +3,7 @@ package main
 import (
 	"asset/config"
 	"asset/models"
+	"asset/controllers"
 	"asset/routers"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ func main() {
 	config.ConnectToMongoDB()
 
 	// TODO how to clean this up?
-	go config.ConnectToRabbitMQ()
+	go config.ConnectToRabbitMQ(controllers.CreateMeasurement)
 	// TODO read from .env.
 	r.Run("asset:8080")
 }

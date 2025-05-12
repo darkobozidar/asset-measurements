@@ -3,14 +3,11 @@ package config
 import (
 	"asset/utils"
 
-	"log"
-	"encoding/json"
-
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // TODO collect data from .env
-func ConnectToRabbitMQ() {
+func ConnectToRabbitMQ(messageHandler func (queueMessage []byte)) {
 	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	utils.FailOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -43,22 +40,9 @@ func ConnectToRabbitMQ() {
 	var forever chan struct{}
 		go func() {
 			for m := range msgs {
-				// log.Printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA %v", m.Body)
-				var assetMeasurement Measurement
-				err := json.Unmarshal(m.Body, &assetMeasurement)
-				utils.FailOnError(err, "Failed to decode JSON")
-
-				// TODO check if assetID exists
-
-				log.Printf("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB %+v", assetMeasurement)
-
-				if err := InsertMeasurement(assetMeasurement); err != nil {
-					log.Fatalf("Error inserting measurement: %v", err)
-				}
+				messageHandler(m.Body)
 			}
 		}()
-
-	//   log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 }
 
