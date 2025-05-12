@@ -3,6 +3,7 @@ package controllers
 import (
     "asset/config"
     "asset/models"
+    "asset/utils"
 
     "net/http"
     "strconv"
@@ -12,10 +13,9 @@ import (
 )
 
 func GetAsset(c *gin.Context) {
-    var asset models.Asset
+    asset, err := models.GetActiveAsset(utils.StringToUint(c.Param("id")))
 
-    result := config.DB.First(&asset, "id = ? AND is_active = true", c.Param("id"))
-    if err := result.Error; err != nil {
+    if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }

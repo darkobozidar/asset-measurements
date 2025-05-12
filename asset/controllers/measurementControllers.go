@@ -10,6 +10,7 @@ import (
     "strconv"
     "context"
     "time"
+    "log"
 
     "github.com/gin-gonic/gin"
     "go.mongodb.org/mongo-driver/bson"
@@ -184,6 +185,17 @@ func CreateMeasurement(msg []byte) {
     var assetMeasurement models.AssetMeasurement
     err := json.Unmarshal(msg, &assetMeasurement)
     utils.FailOnError(err, "Failed to decode JSON")
+
+    asset, err := models.GetActiveAsset(assetMeasurement.AssetID)
+    if err != nil {
+        utils.LogOnError(err, "Error while reading active Asset.")
+        return
+    }
+
+    if !asset.IsEnabled {
+        log.Printf("Asset %+v disabled. Not saving to DB the measurement %+v.", asset, assetMeasurement)
+        return
+    }
 
     // TODO check if assetID exists (Exactly once!)
     collection := config.MongoC.Database("asset_measurements").Collection("measurements")

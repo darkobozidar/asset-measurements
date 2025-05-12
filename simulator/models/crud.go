@@ -12,7 +12,8 @@ func GetActiveAssetSimulationConfigs() []AssetSimulationConfig {
 	query := config.DB.
         Where("is_active = true").
         Find(&assetSimulationConfigs)
-	utils.FailOnError(query.Error, "Error while reading active AssetSimulationConfig records.")
+
+	utils.LogOnError(query.Error, "Error while reading active AssetSimulationConfig records.")
 
 	return assetSimulationConfigs
 }
