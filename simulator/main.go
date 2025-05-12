@@ -3,21 +3,30 @@ package main
 import (
 	"simulator/config"
 	"simulator/models"
-	"simulator/routers"
 	"simulator/simulation"
 
 	"github.com/gin-gonic/gin"
 )
 
+// TODO read from .env where possible.
 func main() {
+	// PostgreSQL
 	config.ConnectToDB()
 	models.MigrateModels()
 
+	// RabbitMQ
+	conn := config.ConnectToRabbitMQ()
+    channel := config.CreateRabbitMQChannel(conn)
+    queue := config.CreateRabbitMQQueue(channel, "asset-measurements")
+	defer conn.Close()
+    defer channel.Close()
+
+	// Asset measurement simulation
+	simulation.StartSimulation(func(obj any) {
+		config.PublishToQueue(channel, queue.Name, obj)
+	})
+
+	// Start server
 	r := gin.Default()
-	routers.RegisterRouters(r)
-
-	simulation.StartSimulation()
-
-	// TODO read from .env
 	r.Run("simulator:8080")
 }

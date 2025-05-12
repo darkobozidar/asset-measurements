@@ -11,7 +11,7 @@ import (
     "github.com/gin-gonic/gin"
 )
 
-// TODO read from .env where possible
+// TODO read from .env where possible.
 func main() {
     // PostgreSQL
     config.ConnectToPostgresDB()

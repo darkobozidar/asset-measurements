@@ -29,12 +29,11 @@ func GetAssetSimulationConfigs() {
 	}
 }
 
-// func startSimulation(config AssetSimulationConfig, producer MessageProducer) {
-func StartSimulation() {
+func StartSimulation(simulationHandler func(obj any)) {
 	var assetConfigs []models.AssetSimulationConfig
 
 	query := config.DB.
-        // Where("isActive = true").
+        // TODO where("isActive = true").
         Find(&assetConfigs)
 
 	if err := query.Error; err != nil {
@@ -43,18 +42,15 @@ func StartSimulation() {
 	}
 
     for _, assetConfig := range assetConfigs {
-        // go startSimulationForConfig(assetConfig)
-        log.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX %+v", assetConfig)
-        go startSimulationForConfig(assetConfig)
+        go startSimulationForConfig(assetConfig, simulationHandler)
     }
 }
 
-func startSimulationForConfig(assetConfig models.AssetSimulationConfig) {
+func startSimulationForConfig(assetConfig models.AssetSimulationConfig, simulationHandler func(obj any)) {
     ticker := time.NewTicker(time.Duration(assetConfig.MeasurementInterval) * time.Second)
     defer ticker.Stop()
 
     // Initial state hardcoded to 50%. TODO think of something better.
-
     currentSOE := 50.0
     var lastPower float64 = assetConfig.MinPower
 
@@ -63,8 +59,6 @@ func startSimulationForConfig(assetConfig models.AssetSimulationConfig) {
         currentSOE = updateSOE(currentSOE, currentPower, assetConfig.MeasurementInterval)
         lastPower = currentPower
 
-        log.Printf("Power: %v, SOE: %v", currentPower, currentSOE)
-
         measurement := AssetMeasurement{
             AssetID:   assetConfig.ID,
             Timestamp: time.Now().UTC(),
@@ -72,7 +66,7 @@ func startSimulationForConfig(assetConfig models.AssetSimulationConfig) {
             SOE:       lastPower,
         }
 
-        config.PublishToQueue(measurement)
+        simulationHandler(measurement)
     }
 }
 
