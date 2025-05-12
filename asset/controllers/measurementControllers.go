@@ -3,6 +3,7 @@ package controllers
 import (
 	"asset/config"
     "asset/utils"
+    "asset/models"
 
     "encoding/json"
 	"net/http"
@@ -16,16 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Measurement struct {
-	// For some reason the AssetId is not sent correctly through RabbitMQ if it
-    // is named `asset_id`, but it works with `asset-id`?
-    AssetID   uint      `bson:"asset_id""`  // metaField
-    Timestamp time.Time `bson:"timestamp"` // timeField
-    Power     float64   `bson:"power"`
-    SOE       float64   `bson:"soe"`
-}
-
-// TODO check to create indexes
+// TODO check to create indexes.
 func GetLatestMeasurement(c *gin.Context) {
     assetID, err := strconv.Atoi(c.Param("id"))
     if err != nil {
@@ -38,7 +30,7 @@ func GetLatestMeasurement(c *gin.Context) {
     filter := bson.M{"asset_id": assetID}
     opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
 
-    var measurement Measurement
+    var measurement models.AssetMeasurement
     err = collection.FindOne(context.TODO(), filter, opts).Decode(&measurement)
     if err != nil {
         if err == mongo.ErrNoDocuments {
@@ -94,7 +86,7 @@ func GetMeasurementsInRange(c *gin.Context) {
         return
     }
 
-    var results []Measurement
+    var results []models.AssetMeasurement
     if err := cursor.All(context.TODO(), &results); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "decoding failed"})
         return
@@ -188,9 +180,9 @@ func GetAverageMeasurements(c *gin.Context) {
     c.JSON(http.StatusOK, results)
 }
 
-func CreateMeasurement(queueMessage []byte) {
-    var assetMeasurement config.Measurement
-    err := json.Unmarshal(queueMessage, &assetMeasurement)
+func CreateMeasurement(msg []byte) {
+    var assetMeasurement models.AssetMeasurement
+    err := json.Unmarshal(msg, &assetMeasurement)
     utils.FailOnError(err, "Failed to decode JSON")
 
     // TODO check if assetID exists (Exactly once!)

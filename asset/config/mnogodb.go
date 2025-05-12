@@ -4,20 +4,10 @@ import (
 	"context"
     "fmt"
     "log"
-    "time"
 
     "go.mongodb.org/mongo-driver/mongo"
     "go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type Measurement struct {
-	// For some reason the AssetId is not sent correctly through RabbitMQ if it
-    // is named `asset_id`, but it works with `asset-id`?
-    AssetID   uint      `bson:"asset_id" json:"asset-id"`  // metaField
-    Timestamp time.Time `bson:"timestamp"` // timeField
-    Power     float64   `bson:"power"`
-    SOE       float64   `bson:"soe"`
-}
 
 var MongoC *mongo.Client
 
@@ -31,6 +21,7 @@ func ConnectToMongoDB() {
         log.Fatalf("Failed to connect to MongoDB: %v", err)
     }
 
+    // TODO clean this up at the end.
     // defer func() {
     //     if err = client.Disconnect(context.TODO()); err != nil {
     //         log.Fatalf("Failed to disconnect MongoDB client: %v", err)

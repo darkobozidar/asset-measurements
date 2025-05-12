@@ -2,6 +2,8 @@ package models
 
 import (
 	"asset/config"
+
+    "time"
 )
 
 type Asset struct {
@@ -12,6 +14,13 @@ type Asset struct {
     Enabled     bool      `gorm:"default:true" json:"enabled"`
     // CreatedAt   time.Time `json:"created_at"`  // TODO
     // UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type AssetMeasurement struct {
+    AssetID   uint      `bson:"asset_id" json:"asset_id"`
+    Timestamp time.Time `bson:"timestamp"`
+    Power     float64   `bson:"power"`
+    SOE       float64   `bson:"soe"`
 }
 
 func MigrateModels() {

@@ -13,7 +13,7 @@ import (
 type AssetMeasurement struct {
     // For some reason the AssetId is not sent correctly through RabbitMQ if it
     // is named `asset_id`, but it works with `asset-id`?
-    AssetID   uint      `json:"asset-id"`
+    AssetID   uint      `json:"asset_id"`
     Timestamp time.Time `json:"timestamp"`
     Power     float64   `json:"power"`
     SOE       float64   `json:"soe"`
