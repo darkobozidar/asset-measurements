@@ -16,6 +16,7 @@ func main() {
     // PostgreSQL
     config.ConnectToPostgresDB()
     models.MigrateModels()
+    defer config.SQLDB.Close()
 
     // MongoDB
     config.ConnectToMongoDB()
