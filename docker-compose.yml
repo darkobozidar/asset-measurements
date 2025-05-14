@@ -4,6 +4,8 @@ services:
       context: ./asset
     ports:
       - "8080:8080"
+    env_file:
+      - ./.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -17,6 +19,8 @@ services:
       context: ./simulator
     ports:
       - "8081:8080"
+    env_file:
+      - ./.env
     depends_on:
       postgres:
         condition: service_healthy

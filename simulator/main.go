@@ -11,8 +11,9 @@ import (
 // TODO read from .env where possible.
 func main() {
 	// PostgreSQL
-	config.ConnectToDB()
+	config.ConnectToPostgresDB()
 	models.MigrateModels()
+	defer config.SQLDB.Close()
 
 	// RabbitMQ
 	conn := config.ConnectToRabbitMQ()
