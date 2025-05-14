@@ -3,9 +3,16 @@ package utils
 import (
     "fmt"
     "log"
+    "time"
     "regexp"
 	"strconv"
 )
+
+type MongoQueryValues struct {
+    FromDateTime time.Time
+    ToDateTime   time.Time
+    SortOrder    int
+}
 
 func FailOnError(err error, msg string) {
     if err != nil {
@@ -38,4 +45,28 @@ func ExtractBinSizeAndUnit(s string) (int, string, error) {
 	}
 
 	return num, matches[2], nil
+}
+
+func ConvertFromTimeAndToTimeAndSortToMongoQueryValues(from, to, sort string) (MongoQueryValues, error) {
+    mongoQueryValues := MongoQueryValues{}
+    var err error
+
+    mongoQueryValues.FromDateTime, err = time.Parse(time.RFC3339, from)
+    if err != nil {
+        return MongoQueryValues{}, err
+    }
+    mongoQueryValues.ToDateTime, err = time.Parse(time.RFC3339, to)
+    if err != nil {
+        return MongoQueryValues{}, err
+    }
+
+    if sort == "asc" {
+        mongoQueryValues.SortOrder = 1
+    } else if sort == "desc" {
+        mongoQueryValues.SortOrder = -1
+    } else {
+        return MongoQueryValues{}, err
+    }
+
+    return mongoQueryValues, nil
 }

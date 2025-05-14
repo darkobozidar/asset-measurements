@@ -8,7 +8,6 @@ import (
     "encoding/json"
     "net/http"
     "context"
-    "time"
     "log"
 
     "github.com/gin-gonic/gin"
@@ -48,7 +47,6 @@ func GetMeasurementsInRange(c *gin.Context) {
     var queryParams struct {
         From     string `form:"from" binding:"required,datetime=2006-01-02T15:04:05Z07:00"`
         To       string `form:"to" binding:"required,datetime=2006-01-02T15:04:05Z07:00"`
-        GroupBy  string `form:"groupBy" binding:"omitempty,oneof=1minute 15minute 1hour"`
         Sort     string `form:"sort" binding:"omitempty,oneof=asc desc"`
     }
 
@@ -63,34 +61,32 @@ func GetMeasurementsInRange(c *gin.Context) {
         return
     }
 
-    fromDateTime, err := time.Parse(time.RFC3339, queryParams.From)
+    queryValues, err := utils.ConvertFromTimeAndToTimeAndSortToMongoQueryValues(
+        queryParams.From, queryParams.To, queryParams.Sort,
+    )
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'from' date format (expected RFC3339)"})
-    }
-    toDateTime, err := time.Parse(time.RFC3339, queryParams.To)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'to' date format (expected RFC3339)"})
-    }
-
-    sortOrder := 1
-    if queryParams.Sort == "desc" {
-        sortOrder = -1
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
     }
 
     collection := config.MongoC.Database("asset_measurements").Collection("measurements")
-    filter := bson.M{
-        "asset_id": assetID,
-        "timestamp": bson.M{
-            "$gte": fromDateTime,
-            "$lte": toDateTime,
-        },
-    }
 
     cursor, err := collection.Find(
         context.TODO(),
-        filter,
-        options.Find().SetSort(bson.D{{"timestamp", sortOrder}}),
+        bson.M{
+            "asset_id": assetID,
+            "timestamp": bson.M{
+                "$gte": queryValues.FromDateTime,
+                "$lte": queryValues.ToDateTime,
+            },
+        },
+        options.Find().SetSort(
+            bson.D{
+                {"timestamp", queryValues.SortOrder},
+            },
+        ),
     )
+
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Query failed"})
         return
@@ -124,18 +120,12 @@ func GetAverageMeasurements(c *gin.Context) {
         return
     }
 
-    fromDateTime, err := time.Parse(time.RFC3339, queryParams.From)
+    queryValues, err := utils.ConvertFromTimeAndToTimeAndSortToMongoQueryValues(
+        queryParams.From, queryParams.To, queryParams.Sort,
+    )
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'from' date format (expected RFC3339)"})
-    }
-    toDateTime, err := time.Parse(time.RFC3339, queryParams.To)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'to' date format (expected RFC3339)"})
-    }
-
-    sortOrder := 1
-    if queryParams.Sort == "desc" {
-        sortOrder = -1
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
     }
 
     binSize, unit := 1, "minute"
@@ -155,8 +145,8 @@ func GetAverageMeasurements(c *gin.Context) {
             {"$match", bson.D{
                 {"asset_id", assetID},
                 {"timestamp", bson.D{
-                    {"$gte", fromDateTime},
-                    {"$lte", toDateTime},
+                    {"$gte", queryValues.FromDateTime},
+                    {"$lte", queryValues.ToDateTime},
                 }},
             }},
         },
@@ -175,7 +165,7 @@ func GetAverageMeasurements(c *gin.Context) {
         },
         bson.D{
             {"$sort", bson.D{
-                {"_id", sortOrder},
+                {"_id", queryValues.SortOrder},
             }},
         },
     }
