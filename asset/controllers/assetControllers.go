@@ -13,7 +13,13 @@ import (
 )
 
 func GetAsset(c *gin.Context) {
-    asset, err := models.GetActiveAsset(utils.StringToUint(c.Param("id")))
+    assetId, err := utils.StringToUint(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    asset, err := models.GetActiveAsset(assetId)
 
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

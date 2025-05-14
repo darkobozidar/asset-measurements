@@ -97,84 +97,89 @@ func GetMeasurementsInRange(c *gin.Context) {
 }
 
 func GetAverageMeasurements(c *gin.Context) {
-    assetID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+    var queryParams struct {
+        From     string `form:"from" binding:"required,datetime=2006-01-02T15:04:05Z07:00"`
+        To       string `form:"to" binding:"required,datetime=2006-01-02T15:04:05Z07:00"`
+        GroupBy  string    `form:"groupBy" binding:"omitempty,oneof=1minute 15minute 1hour"`
+        Sort     string    `form:"sort" binding:"omitempty,oneof=asc desc"`
+    }
+
+    if err := c.ShouldBindQuery(&queryParams); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    assetID, err := utils.StringToUint(c.Param("id"))
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid asset_id"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
-    fromStr := c.Query("from")
-    toStr := c.Query("to")
-    interval := c.DefaultQuery("interval", "hour") // default
-    order := c.DefaultQuery("order", "asc")
-
-    from, err1 := time.Parse(time.RFC3339, fromStr)
-    to, err2 := time.Parse(time.RFC3339, toStr)
-    if err1 != nil || err2 != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid from/to date format (expected RFC3339)"})
-        return
+    fromDateTime, err := time.Parse(time.RFC3339, queryParams.From)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'from' date format (expected RFC3339)"})
+    }
+    toDateTime, err := time.Parse(time.RFC3339, queryParams.To)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'to' date format (expected RFC3339)"})
     }
 
-    var format string
-    switch interval {
-    case "minute":
-        format = "%Y-%m-%dT%H:%M"
-    case "15min":
-        // We'll bucket manually into 15-minute slots using a $function or math (see below)
-        // But since $function is not available in Go driver directly, we'll round timestamp to nearest 15min in code.
-        format = "" // we’ll use $dateTrunc instead (MongoDB 5.0+)
-    default: // "hour"
-        format = "%Y-%m-%dT%H"
+    binSize, unit := 1, "minute"
+    if queryParams.GroupBy != "" {
+        binSize, unit, err = utils.ExtractBinSizeAndUnit(queryParams.GroupBy)
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
     }
 
     sortOrder := 1
-    if order == "desc" {
+    if queryParams.Sort == "desc" {
         sortOrder = -1
     }
 
+    // TODO fix this.
     collection := config.MongoC.Database("asset_measurements").Collection("measurements")
 
-    var timeGroup bson.D
-    if interval == "15min" {
-        // MongoDB >=5.0: $dateTrunc for accurate 15-minute rounding
-        timeGroup = bson.D{
-            {"$dateTrunc", bson.D{
-                {"date", "$timestamp"},
-                {"unit", "minute"},
-                {"binSize", 15},
-            }},
-        }
-    } else {
-        timeGroup = bson.D{
-            {"$dateToString", bson.D{
-                {"format", format},
-                {"date", "$timestamp"},
-            }},
-        }
-    }
-
     pipeline := mongo.Pipeline{
-        bson.D{{"$match", bson.D{
-            {"asset_id", assetID},
-            {"timestamp", bson.D{{"$gte", from}, {"$lte", to}}},
-        }}},
-        bson.D{{"$group", bson.D{
-            {"_id", timeGroup},
-            {"avg_power", bson.D{{"$avg", "$power"}}},
-            {"avg_soe", bson.D{{"$avg", "$soe"}}},
-        }}},
-        bson.D{{"$sort", bson.D{{"_id", sortOrder}}}},
+        bson.D{
+            {"$match", bson.D{
+                {"asset_id", assetID},
+                {"timestamp", bson.D{
+                    {"$gte", fromDateTime},
+                    {"$lte", toDateTime},
+                }},
+            }},
+        },
+        bson.D{
+            {"$group", bson.D{
+                {"_id", bson.D{
+                    {"$dateTrunc", bson.D{
+                        {"date", "$timestamp"},
+                        {"unit", unit},
+                        {"binSize", binSize},
+                    }},
+                }},
+                {"avg_power", bson.D{{"$avg", "$power"}}},
+                {"avg_soe", bson.D{{"$avg", "$soe"}}},
+            }},
+        },
+        bson.D{
+            {"$sort", bson.D{
+                {"_id", sortOrder},
+            }},
+        },
     }
 
     cursor, err := collection.Aggregate(context.TODO(), pipeline)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "aggregation failed"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Aggregation failed"})
         return
     }
 
     var results []bson.M
     if err := cursor.All(context.TODO(), &results); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "decoding failed"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Decoding failed"})
         return
     }
 

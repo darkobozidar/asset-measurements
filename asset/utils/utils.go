@@ -1,8 +1,10 @@
 package utils
 
 import (
+    "fmt"
     "log"
-    "strconv"
+    "regexp"
+	"strconv"
 )
 
 func FailOnError(err error, msg string) {
@@ -17,9 +19,23 @@ func LogOnError(err error, msg string) {
     }
 }
 
-func StringToUint(strVal string) uint {
+func StringToUint(strVal string) (uint, error) {
     unitVal, err := strconv.ParseUint(strVal, 10, 64)
-    FailOnError(err, "Failed to convert string to uint.")
+    return uint(unitVal), err
+}
 
-    return uint(unitVal)
+func ExtractBinSizeAndUnit(s string) (int, string, error) {
+	re := regexp.MustCompile(`^(\d+)([a-zA-Z]+)$`)
+
+	matches := re.FindStringSubmatch(s)
+	if len(matches) != 3 {
+		return 0, "", fmt.Errorf("string does not match expected pattern")
+	}
+
+	num, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return 0, "", err
+	}
+
+	return num, matches[2], nil
 }
