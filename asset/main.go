@@ -29,7 +29,7 @@ func main() {
     // RabbitMQ
     conn := config.ConnectToRabbitMQ()
     channel := config.CreateRabbitMQChannel(conn)
-    queue := config.CreateRabbitMQQueue(channel, "asset-measurements")
+    queue := config.CreateRabbitMQQueue(channel, os.Getenv("RABBITMQ_MEASUREMENTS_QUEUE_NAME"))
     go config.RegisterRabbitMQConsumer(channel, queue.Name, controllers.CreateMeasurement)
     defer conn.Close()
     defer channel.Close()

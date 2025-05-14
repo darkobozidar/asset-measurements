@@ -23,7 +23,7 @@ func ConnectToPostgresDB() {
         os.Getenv("POSTGRES_USER"),
         os.Getenv("POSTGRES_PASSWORD"),
         os.Getenv("POSTGRES_DB"),
-        os.Getenv("POSTGRES_PORT"),
+        os.Getenv("POSTGRES_CONTAINER_PORT"),
     )
 
     DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})

@@ -3,12 +3,23 @@ package config
 import (
     "asset/utils"
 
+    "fmt"
+    "os"
+
     amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// TODO collect data from .env
 func ConnectToRabbitMQ() *amqp.Connection {
-    conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+    const BASE_CONN_URL string = "amqp://%s:%s@rabbitmq:%s/"
+
+    connUrl := fmt.Sprintf(
+        BASE_CONN_URL,
+        os.Getenv("RABBITMQ_DEFAULT_USER"),
+        os.Getenv("RABBITMQ_DEFAULT_PASS"),
+        os.Getenv("RABBITMQ_CONTAINER_PORT"),
+    )
+
+    conn, err := amqp.Dial(connUrl)
     utils.FailOnError(err, "Failed to connect to RabbitMQ")
     return conn
 }
