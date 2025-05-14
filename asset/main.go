@@ -22,7 +22,11 @@ func main() {
     // MongoDB
     config.ConnectToMongoDB()
     config.CreateTimeSeriesCollection(
-        "asset_measurements", "measurements", "timestamp", "asset_id", "seconds",
+        os.Getenv("MONGODB_MEASUREMENTS_DB"),
+        os.Getenv("MONGODB_MEASUREMENTS_COLLECTION"),
+        "timestamp",
+        "asset_id",
+        "seconds",
     )
     defer config.MongoC.Disconnect(context.TODO())
 

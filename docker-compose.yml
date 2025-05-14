@@ -60,11 +60,11 @@ services:
   mongodb:
     image: mongo:7
     ports:
-      - "27017:27017"
+      - "${MONGODB_HOST_PORT}:${MONGODB_CONTAINER_PORT}"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_DATABASE: asset_measurements
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: asset_measurements # TODO check if this is necessary.
     volumes:
       - mongo-data:/data/db
     healthcheck:

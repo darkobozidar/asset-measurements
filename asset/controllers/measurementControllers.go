@@ -24,12 +24,11 @@ func GetLatestMeasurement(c *gin.Context) {
         return
     }
 
-    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
-
     filter := bson.M{"asset_id": assetID}
     opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
 
     var measurement models.AssetMeasurement
+    collection := models.GetMongoDBAssetMeasurementsCollection()
     err = collection.FindOne(context.TODO(), filter, opts).Decode(&measurement)
     if err != nil {
         if err == mongo.ErrNoDocuments {
@@ -69,8 +68,7 @@ func GetMeasurementsInRange(c *gin.Context) {
         return
     }
 
-    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
-
+    collection := models.GetMongoDBAssetMeasurementsCollection()
     cursor, err := collection.Find(
         context.TODO(),
         bson.M{
@@ -137,9 +135,6 @@ func GetAverageMeasurements(c *gin.Context) {
         }
     }
 
-    // TODO fix this.
-    collection := config.MongoC.Database("asset_measurements").Collection("measurements")
-
     pipeline := mongo.Pipeline{
         bson.D{
             {"$match", bson.D{
@@ -170,7 +165,9 @@ func GetAverageMeasurements(c *gin.Context) {
         },
     }
 
+    collection := models.GetMongoDBAssetMeasurementsCollection()
     cursor, err := collection.Aggregate(context.TODO(), pipeline)
+
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Query failed"})
         return
