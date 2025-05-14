@@ -54,7 +54,6 @@ func GetAssets(c *gin.Context) {
         return
     }
 
-    // TODO add pagination (or check how to add it).
     c.JSON(http.StatusOK, assets)
 }
 
