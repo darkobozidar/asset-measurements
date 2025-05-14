@@ -7,11 +7,12 @@ import (
     "asset/routers"
 
     "context"
+    "os"
+    "fmt"
 
     "github.com/gin-gonic/gin"
 )
 
-// TODO read from .env where possible.
 func main() {
     // PostgreSQL
     config.ConnectToPostgresDB()
@@ -36,5 +37,5 @@ func main() {
     // Start server
     r := gin.Default()
     routers.RegisterRouters(r)
-    r.Run("asset:8080")
+    r.Run(fmt.Sprintf("%s:%s", os.Getenv("ASSET_SERVICE_HOST"), os.Getenv("ASSET_SERVICE_CONTAINER_PORT")))
 }

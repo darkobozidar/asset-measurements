@@ -1,4 +1,4 @@
-package config  // TODO rename to init
+package config
 
 import (
     "fmt"

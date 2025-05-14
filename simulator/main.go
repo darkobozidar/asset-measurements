@@ -5,10 +5,12 @@ import (
 	"simulator/models"
 	"simulator/simulation"
 
+	"os"
+    "fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
-// TODO read from .env where possible.
 func main() {
 	// PostgreSQL
 	config.ConnectToPostgresDB()
@@ -29,5 +31,5 @@ func main() {
 
 	// Start server
 	r := gin.Default()
-	r.Run("simulator:8080")
+	r.Run(fmt.Sprintf("%s:%s", os.Getenv("SIMULATOR_SERVICE_HOST"), os.Getenv("SIMULATOR_SERVICE_CONTAINER_PORT")))
 }

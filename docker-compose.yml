@@ -1,9 +1,9 @@
 services:
   asset:
     build:
-      context: ./asset
+      context: ./${ASSET_SERVICE_HOST}
     ports:
-      - "8080:8080"
+      - "${ASSET_SERVICE_HOST_PORT}:${ASSET_SERVICE_CONTAINER_PORT}"
     env_file:
       - ./.env
     depends_on:
@@ -16,9 +16,9 @@ services:
 
   simulator:
     build:
-      context: ./simulator
+      context: ./${SIMULATOR_SERVICE_HOST}
     ports:
-      - "8081:8080"
+      - "${SIMULATOR_SERVICE_HOST_PORT}:${SIMULATOR_SERVICE_CONTAINER_PORT}"
     env_file:
       - ./.env
     depends_on:
