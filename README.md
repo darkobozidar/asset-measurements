@@ -3,16 +3,15 @@
 ## Setup
 * Copy the ".env.example" to ".env" (run `cp .env.example .env`)
 * Run `docker compose up --build`
-* Postgres and MongoDB should be created automatically, data is filled with fixtures.
+    * Simulation starts automatically on `simulator` service start.
+    * Postgres and MongoDB databases are created automatically, Postgres data is filled with fixtures.
 
 ## Assignment
 
-* Parts of the assignment that weren't done: only "Optional Requirements".
+* Parts of the assignment that weren't done: "Optional Requirements".
 * Some minor TODOs left in the code.
 
 ## Endpoints
-
-TODO add POST / PUT body
 
 Asset CRUD:
 * Get Asset by ID
@@ -23,10 +22,14 @@ Asset CRUD:
     * Example: `GET "http://{host}:8080/asset?isEnabled=true&type=Type"`
 * Create Asset
     * Pattern: `POST "/asset/"`
-    * Example: `POST http://{host}:8080/asset`
+    * Example:
+        * URL: `POST http://{host}:8080/asset`
+        * Body: `{ "name": "Name", "description": "Description", "type": "Type", "isEnabled": true }`
 * Update Asset
     * Pattern: `PUT "/asset/:id"`
-    * Example: `PUT "http://{host}:8080/asset/1"`
+    * Example:
+        * URL: `PUT "http://{host}:8080/asset/1"`
+        * Body: `{ "id": 1, "name": "New name" }`
     * Note: only the filed values that need to be updated can be specified.
 * Delete Asset
     * Pattern: `DELETE "/asset/:id"`
