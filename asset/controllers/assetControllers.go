@@ -103,6 +103,12 @@ func UpdateAsset(c *gin.Context) {
         return
     }
 
+    resultRead := config.DB.First(&asset, "id = ? AND is_active = true", assetId)
+    if err := resultRead.Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
     if body.Name != nil {
         asset.Name = *body.Name
     }
@@ -116,25 +122,7 @@ func UpdateAsset(c *gin.Context) {
         asset.IsEnabled = *body.IsEnabled
     }
 
-    // TODO `IsEnabled` doesn't update the value if set to `false`, even if hardcoded.
-    resultUpdate := config.DB.Model(&models.Asset{}).
-        Where("id = ? AND is_active = true", assetId).
-        Updates(&asset)
-
-    if err := resultUpdate.Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
-    if resultUpdate.RowsAffected == 0 {
-        msg := fmt.Sprintf("Asset %s not found.", assetId)
-        c.JSON(http.StatusBadRequest, gin.H{"error": msg})
-        return
-    }
-
-    // TODO Transaction between update and read.
-    resultRead := config.DB.First(&asset, "id = ? AND is_active = true", assetId)
-    if err := resultRead.Error; err != nil {
+    if err := config.DB.Save(&asset).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
