@@ -16,6 +16,6 @@ func GetActiveAsset(assetId uint) (Asset, error) {
 }
 
 func GetMongoDBAssetMeasurementsCollection() *mongo.Collection {
-	db := config.MongoC.Database(os.Getenv("MONGODB_MEASUREMENTS_DB"))
-	return db.Collection(os.Getenv("MONGODB_MEASUREMENTS_COLLECTION"))
+	db := config.MongoC.Database(os.Getenv("MONGO_INITDB_DATABASE"))
+	return db.Collection(os.Getenv("MONGO_MEASUREMENTS_COLLECTION"))
 }

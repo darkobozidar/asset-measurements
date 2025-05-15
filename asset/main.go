@@ -18,17 +18,7 @@ func main() {
     defer config.SQLDB.Close()
 
     // MongoDB
-    TIME_FIELD := "timestamp"
-    META_FIELD := "asset_id"
-    GRANULARITY := "seconds"
     config.ConnectToMongoDB()
-    config.CreateTimeSeriesCollection(
-        os.Getenv("MONGODB_MEASUREMENTS_DB"),
-        os.Getenv("MONGODB_MEASUREMENTS_COLLECTION"),
-        TIME_FIELD,
-        META_FIELD,
-        GRANULARITY,
-    )
     defer config.MongoC.Disconnect(context.TODO())
 
     // RabbitMQ
