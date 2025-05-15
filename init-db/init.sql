@@ -74,7 +74,7 @@ FROM assets WHERE name = 'Solar Farm Y'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'wind', 30, -1000.0, 1600.0, 75.0
+SELECT id, 'wind', 30, -2000.0, 1000.0, 75.0
 FROM assets WHERE name = 'Wind Mill Z'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 

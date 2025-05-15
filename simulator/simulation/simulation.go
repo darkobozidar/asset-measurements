@@ -39,7 +39,7 @@ func (sm *SimulationManager) startSimulationForAsset(assetConfig models.AssetSim
     }
 
     _, cancel := context.WithCancel(context.Background())
-    previousPower := (assetConfig.MaxPower - assetConfig.MinPower) / 2
+    previousPower := assetConfig.MinPower + ((assetConfig.MaxPower - assetConfig.MinPower) / 2)
     previousSOE := 50.0
 
     go func() {
