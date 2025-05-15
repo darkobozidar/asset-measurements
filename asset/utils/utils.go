@@ -6,7 +6,6 @@ import (
     "time"
     "regexp"
 	"strconv"
-    "errors"
 )
 
 type MongoQueryValues struct {
@@ -61,12 +60,9 @@ func ConvertFromTimeAndToTimeAndSortToMongoQueryValues(from, to, sort string) (M
         return MongoQueryValues{}, err
     }
 
-    if sort == "asc" {
-        mongoQueryValues.SortOrder = 1
-    } else if sort == "desc" {
+    mongoQueryValues.SortOrder = 1
+    if sort == "desc" {
         mongoQueryValues.SortOrder = -1
-    } else {
-        return MongoQueryValues{}, errors.New("Missing sort param.")
     }
 
     return mongoQueryValues, nil
