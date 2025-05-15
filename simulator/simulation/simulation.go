@@ -27,7 +27,7 @@ func startSimulationForConfig(assetConfig models.AssetSimulationConfig, simulati
     ticker := time.NewTicker(time.Duration(assetConfig.MeasurementInterval) * time.Second)
     defer ticker.Stop()
 
-    // Initial state hardcoded to 50%. TODO think of something better.
+    // Initial state hardcoded to 50%.
     currentSOE := 50.0
     var lastPower float64 = assetConfig.MinPower
 

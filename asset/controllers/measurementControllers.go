@@ -198,7 +198,7 @@ func CreateMeasurement(msg []byte) {
         return
     }
 
-    // TODO check if assetID exists (Exactly once!)
+    // TODO check if AssetMeasurement already exists (due to RabbitMQ "at least once delivery").
     collection := config.MongoC.Database("asset_measurements").Collection("measurements")
     _, err = collection.InsertOne(context.TODO(), assetMeasurement)
     utils.FailOnError(err, "Error on inserting measurement");
