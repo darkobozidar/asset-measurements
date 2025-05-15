@@ -47,19 +47,19 @@ INSERT INTO assets (name, description, type, is_enabled)
 SELECT 'Hybrid Power Box', 'Solar and battery hybrid device', 'hybrid', true
 WHERE NOT EXISTS (SELECT 1 FROM assets WHERE name = 'Hybrid Power Box');
 
--- Simulation configs
+-- -- Simulation configs
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'battery', 10, 100.0, 1000.0, 50.0
+SELECT id, 'battery', 10, -500.0, 1000.0, 50.0
 FROM assets WHERE name = 'Battery A'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'solar', 15, 0.0, 500.0, 0.0
+SELECT id, 'solar', 15, -100.0, 500.0, 0.0
 FROM assets WHERE name = 'Solar Panel X'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'wind', 20, 200.0, 1500.0, 100.0
+SELECT id, 'wind', 20, -200.0, 1500.0, 100.0
 FROM assets WHERE name = 'Wind Turbine 3'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
@@ -69,16 +69,16 @@ FROM assets WHERE name = 'Battery B'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'solar', 20, 50.0, 700.0, 0.0
+SELECT id, 'solar', 20, -500.0, 300.0, 0.0
 FROM assets WHERE name = 'Solar Farm Y'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'wind', 30, 300.0, 1600.0, 75.0
+SELECT id, 'wind', 30, -1000.0, 1600.0, 75.0
 FROM assets WHERE name = 'Wind Mill Z'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);
 
 INSERT INTO asset_simulation_configs (asset_id, type, measurement_interval, min_power, max_power, max_power_step)
-SELECT id, 'hybrid', 15, 200.0, 900.0, 25.0
+SELECT id, 'hybrid', 15, -800.0, 500.0, 25.0
 FROM assets WHERE name = 'Hybrid Power Box'
 AND NOT EXISTS (SELECT 1 FROM asset_simulation_configs WHERE asset_id = assets.id);

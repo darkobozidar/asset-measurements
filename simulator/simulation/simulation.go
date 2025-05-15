@@ -4,6 +4,8 @@ import (
 	"math"
     "math/rand"
     "time"
+    "sync"
+    "context"
 
 	"simulator/models"
 )
@@ -15,39 +17,57 @@ type assetMeasurement struct {
     SOE       float64   `json:"soe"`
 }
 
-func StartSimulation(simulationHandler func(obj any)) {
+// Map currently used only for adding simulations, but not for stopping them.
+// This is groundwork for the assignment expansion in case we wanted to change
+// the existing simulations (eg. add new, edit / delete existing).
+type SimulationManager struct {
+    // Using sync.Map to avoid panics for concurrent read / write to a map.
+	Simulations sync.Map
+}
+
+func (sm *SimulationManager) StartSimulation(simulationHandler func(obj any)) {
 	assetSimulationConfigs := models.GetActiveAssetSimulationConfigs()
 
     for _, assetConfig := range assetSimulationConfigs {
-        go startSimulationForConfig(assetConfig, simulationHandler)
+        sm.startSimulationForAsset(assetConfig, simulationHandler)
     }
 }
 
-func startSimulationForConfig(assetConfig models.AssetSimulationConfig, simulationHandler func(obj any)) {
-    ticker := time.NewTicker(time.Duration(assetConfig.MeasurementInterval) * time.Second)
-    defer ticker.Stop()
+func (sm *SimulationManager) startSimulationForAsset(assetConfig models.AssetSimulationConfig, simulationHandler func(obj any)) {
+    if _, exists := sm.Simulations.Load(assetConfig.AssetID); exists {
+        return
+    }
 
-    // Initial state hardcoded to 50%.
-    currentSOE := 50.0
-    var lastPower float64 = assetConfig.MinPower
+    _, cancel := context.WithCancel(context.Background())
+    previousPower := (assetConfig.MaxPower - assetConfig.MinPower) / 2
+    previousSOE := 50.0
 
-    for range ticker.C {
-        currentPower := generateRandomPower(assetConfig, lastPower)
-        currentSOE = updateSOE(currentSOE, currentPower, assetConfig.MeasurementInterval)
-        lastPower = currentPower
+    go func() {
+        ticker := time.NewTicker(time.Duration(assetConfig.MeasurementInterval) * time.Second)
+        defer ticker.Stop()
 
-        measurement := assetMeasurement{
-            AssetID:   assetConfig.ID,
-            Timestamp: time.Now().UTC(),
-            Power:     currentPower,
-            SOE:       lastPower,
+        for range ticker.C {
+            currentPower := generatePower(previousPower, assetConfig)
+            currentSOE := generateSOE(currentPower, previousSOE, float64(assetConfig.MeasurementInterval))
+
+            measurement := assetMeasurement{
+                AssetID:   assetConfig.ID,
+                Timestamp: time.Now().UTC(),
+                Power:     currentPower,
+                SOE:       currentSOE,
+            }
+
+            previousPower = currentPower
+            previousSOE = currentSOE
+
+            simulationHandler(measurement)
         }
+    }()
 
-        simulationHandler(measurement)
-    }
+    sm.Simulations.Store(assetConfig.AssetID, cancel)
 }
 
-func generateRandomPower(assetConfig models.AssetSimulationConfig, lastPower float64) float64 {
+func generatePower(previousPower float64, assetConfig models.AssetSimulationConfig) float64 {
     step := rand.Float64() * (assetConfig.MaxPowerStep)
     if assetConfig.MaxPowerStep <= 0 {
         step = rand.Float64() * (assetConfig.MaxPower - assetConfig.MinPower)
@@ -58,17 +78,20 @@ func generateRandomPower(assetConfig models.AssetSimulationConfig, lastPower flo
         direction = -1.0
     }
 
-    newPower := lastPower + direction*step
-    newPower = math.Max(assetConfig.MinPower, math.Min(assetConfig.MaxPower, newPower))
-    lastPower = newPower
+    currentPower := previousPower + direction * step
+    currentPower = math.Max(assetConfig.MinPower, math.Min(assetConfig.MaxPower, currentPower))
 
-    return newPower
+    return currentPower
 }
 
-func updateSOE(currentSOE, power float64, intervalSeconds int) float64 {
-    // Assume full charge is 100%, min is 0%
-    // Power positive = charging, negative = discharging
-    delta := (power / 1000.0) * (float64(intervalSeconds) / 3600.0) * 10 // 10% per kWh/hour
-    newSOE := currentSOE + delta
-    return math.Max(0, math.Min(100, newSOE))
+func generateSOE(currentPower, previousSOE, measurementInterval float64, ) float64 {
+    // For simulation simplicity, lets assume that power change always affects the SEO for
+    // the same constant `POWER_TO_SOE_RATIO`.
+    const POWER_TO_SOE_RATIO float64 = 0.0001
+    delta := currentPower * measurementInterval * POWER_TO_SOE_RATIO
+
+    currentSOE := previousSOE + delta
+    currentSOE = math.Max(0, math.Min(100, currentSOE))
+
+    return currentSOE
 }

@@ -23,7 +23,8 @@ func main() {
     defer channel.Close()
 
 	// Asset measurement simulation
-	simulation.StartSimulation(func(obj any) {
+	simManager := &(simulation.SimulationManager{})
+	simManager.StartSimulation(func(obj any) {
 		config.PublishToQueue(channel, queue.Name, obj)
 	})
 
