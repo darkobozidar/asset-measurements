@@ -4,12 +4,11 @@
 * Copy the ".env.example" to ".env" (run `cp .env.example .env`)
 * Run `docker compose up --build`
     * Simulation starts automatically on `simulator` service start.
-    * Postgres and MongoDB databases are created automatically, Postgres data is filled with fixtures.
+    * Postgres and MongoDB databases are created automatically, Postgres tables are populated with fixtures.
 
 ## Assignment
 
-* Parts of the assignment that weren't done: "Optional Requirements".
-* Some minor TODOs left in the code.
+Parts of the assignment that weren't done: "Optional Requirements".
 
 ## Endpoints
 
