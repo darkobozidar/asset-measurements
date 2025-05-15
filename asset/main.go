@@ -2,7 +2,6 @@ package main
 
 import (
     "asset/config"
-    "asset/models"
     "asset/controllers"
     "asset/routers"
 
@@ -16,17 +15,19 @@ import (
 func main() {
     // PostgreSQL
     config.ConnectToPostgresDB()
-    models.MigrateModels()
     defer config.SQLDB.Close()
 
     // MongoDB
+    TIME_FIELD := "timestamp"
+    META_FIELD := "asset_id"
+    GRANULARITY := "seconds"
     config.ConnectToMongoDB()
     config.CreateTimeSeriesCollection(
         os.Getenv("MONGODB_MEASUREMENTS_DB"),
         os.Getenv("MONGODB_MEASUREMENTS_COLLECTION"),
-        "timestamp",
-        "asset_id",
-        "seconds",
+        TIME_FIELD,
+        META_FIELD,
+        GRANULARITY,
     )
     defer config.MongoC.Disconnect(context.TODO())
 

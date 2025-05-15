@@ -2,7 +2,6 @@ package main
 
 import (
 	"simulator/config"
-	"simulator/models"
 	"simulator/simulation"
 
 	"os"
@@ -14,7 +13,6 @@ import (
 func main() {
 	// PostgreSQL
 	config.ConnectToPostgresDB()
-	models.MigrateModels()
 	defer config.SQLDB.Close()
 
 	// RabbitMQ

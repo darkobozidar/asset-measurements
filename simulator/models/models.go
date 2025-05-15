@@ -1,9 +1,5 @@
 package models
 
-import (
-	"simulator/config"
-)
-
 type AssetSimulationConfig struct {
     ID                  uint      `gorm:"primaryKey" json:"id"`
     AssetID             uint      `gorm:"not null" json:"asset_id"`
@@ -13,8 +9,4 @@ type AssetSimulationConfig struct {
     MaxPower            float64   `gorm:"not null" json:"max_power"`
     MaxPowerStep        float64   `gorm:"not null" json:"max_power_step"`
     IsActive            bool      `gorm:"default:true" json:"-"`
-}
-
-func MigrateModels() {
-	config.DB.AutoMigrate(&AssetSimulationConfig{})
 }
