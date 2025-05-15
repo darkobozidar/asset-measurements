@@ -40,7 +40,7 @@ services:
       - ./init-db:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}", "pg_isready"]
-      interval: 2s
+      interval: 5s
       timeout: 5s
       retries: 10
 
@@ -54,7 +54,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
-      interval: 2s
+      interval: 5s
       timeout: 5s
       retries: 10
 
