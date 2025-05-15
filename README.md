@@ -41,8 +41,8 @@ Asset Measurements:
     * Pattern: `GET "/measurement/:id/latest"`
     * Example: `GET "http://{host}:8080/measurement/1/latest"`
 * Get Measurement Range
-    * Pattern: `GET "/measurement/:id?from={from}&to={to}&sort={asc|desc}"`
+    * Pattern: `GET "/measurement/:id?from={from}&to={to}&sort={asc|desc?}"`
     * Example: `GET "http://{host}:8080/measurement/1?from=2025-05-14T10:27:37Z&to=2025-05-14T15:52:18Z&sort=desc"`
 * Get Grouped Measurements Average
-    * Pattern  `GET "/measurement/:id/average?from={from}&to={to}&groupBy={1minute|15minute|1hour}&sort={asc|desc}"`
+    * Pattern  `GET "/measurement/:id/average?from={from}&to={to}&groupBy={1minute|15minute|1hour?}&sort={asc|desc?}"`
     * Example: `GET "http://{host}:8080/measurement/1/average?from=2025-05-14T05:40:00Z&to=2027-05-14T14:15:59Z&groupBy=15minute&sort=asc"`
