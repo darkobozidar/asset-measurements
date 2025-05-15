@@ -15,7 +15,6 @@ import (
     "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// TODO check to create indexes.
 func GetLatestMeasurement(c *gin.Context) {
     assetID, err := utils.StringToUint(c.Param("id"))
     if err != nil {
@@ -197,7 +196,6 @@ func CreateMeasurement(msg []byte) {
         return
     }
 
-    // TODO check if AssetMeasurement already exists (due to RabbitMQ "at least once delivery").
     collection := models.GetMongoDBAssetMeasurementsCollection()
     _, err = collection.InsertOne(context.TODO(), assetMeasurement)
     utils.FailOnError(err, "Error on inserting measurement");
